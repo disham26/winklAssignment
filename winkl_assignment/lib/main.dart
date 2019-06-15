@@ -25,18 +25,33 @@ class FirstPage extends StatefulWidget{
     _FirstPage createState() => _FirstPage();
 
 }
+
+
 class _FirstPage extends State<FirstPage>{
-  var _categoryNameController = new TextEditingController();
+  //var _categoryNameController = new TextEditingController();
+  bool search=false;
+  String queryTerm="";
+  String hintForTextSearch="Search";
+  FocusNode _searchTextFocus = new FocusNode();
   List<models.Pictures> images = new List();
   ScrollController _scrollController = new ScrollController();
+  TextEditingController _searchController = TextEditingController();
+  bool showLoading=false;
+  var page=1;
 
   @override
   void initState(){
     super.initState();
-    fetchFive();
+    fetch();
+    _searchController.addListener(onChange); 
+    _searchTextFocus.addListener(onChange);
     _scrollController.addListener((){
       if(_scrollController.position.pixels == _scrollController.position.maxScrollExtent){
-        fetchFive();
+        if(!search){
+          fetch();
+          }else{
+            fetchSearch(queryTerm);
+          }
       }
     });
   }
@@ -52,78 +67,157 @@ class _FirstPage extends State<FirstPage>{
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(statusBarColor:Colors.black));
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.teal,
         title: Container(
-          margin: EdgeInsets.symmetric(horizontal: 10.0,vertical: 8.0),
+          margin: EdgeInsets.symmetric(horizontal: 15.0,vertical: 8.0),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(22.0)),
+            color: Color.fromARGB(50, 255, 255, 255),
+            borderRadius: BorderRadius.all(Radius.circular(12.0)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+                showLoading
+                ?
+                IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: (){
+                  setState(() {
+                    _searchController.clear();
+                    images.clear();
+                    page=1;
+                    search=false;
+                    fetch();
+                    showLoading=false;
+                  });
+                },
+                ): 
+                Text('' ),
+              
               Expanded(
                 flex: 1,
                 child: Container(
                   padding:EdgeInsets.symmetric(horizontal: 5.0),
                   child:TextFormField(
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
                     
-                    hintText: "Search Pictures",
+                    controller: _searchController,
+                    focusNode: _searchTextFocus,
+                    onFieldSubmitted: (text){
+                      setState(() {
+                        images.clear();
+                        page=1;
+                        fetchSearch(text);
+                      });
+                      
+                    },
+                    decoration: InputDecoration(
+                    border: InputBorder.none,       
+                    hintText: hintForTextSearch,
                     hintStyle: TextStyle(color: Colors.black),
                     icon: Icon(Icons.search,color: Colors.black,),
-
                   ),
                 ),
                 ),
               ),
-                      
+              IconButton(
+                icon: Icon(Icons.cancel),
+                onPressed: (){
+                  setState(() {
+                    _searchController.clear();
+                  });
+                },
+                ),
+              
+              // SizedBox(height: 32),
+              // Divider(),    
+              // SizedBox(height: 32),
             ],
           ),
         ),
         centerTitle: true,
     ),body: 
             ListView.builder(
+              
               controller: _scrollController,
               itemCount: images.length,
               itemBuilder: (BuildContext context, int index){
-                return Container(
-                  constraints: BoxConstraints.tightFor(height:150.0),
-                  child: Image.network(images[index].link,fit:BoxFit.fitWidth)
+                return Card(
+                  elevation: 2,
+                  child: Container(
+                    child: Row(
+                      children: <Widget>[
+                        Image.network(images[index].link,fit:BoxFit.scaleDown),
+                        Spacer(flex: 2,),
+                        Image.network(images[index].link,fit:BoxFit.fitHeight),
+                       
+                        ],
+                    ),
+                  )
+                  
                 );
               },
             )
         
         );
   }
-
+void onChange(){
+  print("Onchange called-------------");
+  String text = _searchController.text;
+  bool hasFocus = _searchTextFocus.hasFocus;
+  //do your text transforming
+  String newText = "Search Anything";
+  _searchController.text = newText;
+  _searchController.selection = new TextSelection(
+                                baseOffset: newText.length, 
+                                extentOffset: newText.length
+                          );
+}
   fetch() async{
-    print("Called fetch");
-    final response = await http.get('https://api.unsplash.com/photos/random?client_id=0fc5f9fb1612ae89062b4777ecf0773d33e9e45838c6e86347279a1df7616c65');
+    final response = await http.get('https://api.unsplash.com/photos?client_id=641f7742e10311edcb08d2df0ef6cc2600b2868c0d0872bc7e1df277cba259bd&per_page=30&page='+page.toString());
     print("Status response:"+response.statusCode.toString());
     if(response.statusCode == 200){
-      print("Succesfully received");
       setState((){
-        //print("Response is:"+response.body);
-        var jsonData= json.decode(response.body);
-        models.Pictures pictures = models.Pictures(
-          alt_description: jsonData['alt_description'],
-          id: jsonData['id'],
-          link: jsonData['urls']['small']
-
-        );
-        images.add(pictures);
-      });
-      
-    }else{
+        page++;
+        List jsonData = json.decode(response.body);
+        jsonData.forEach((i){
+            models.Pictures pictures = models.Pictures(
+              alt_description: i['alt_description'],
+              id: i['id'],
+              link: i['urls']['thumb']
+            );
+            images.add(pictures);
+          });
+        });
+    }
+    else{
       throw Exception('Failed to load image');
     }
   }
 
-  fetchFive(){
-    print("Called fetch5");
-    for(int i=0;i<10;i++){
-      fetch();
+
+  fetchSearch(String text) async{
+    queryTerm=text;
+    String query = 'https://api.unsplash.com/search/photos?client_id=641f7742e10311edcb08d2df0ef6cc2600b2868c0d0872bc7e1df277cba259bd&per_page=30&page='+page.toString()+'&query='+text;
+    print(query);
+    final response = await http.get(query);
+    print("Status response:"+response.statusCode.toString());
+    if(response.statusCode == 200){
+      setState((){
+        showLoading=true;
+        page++;
+        List jsonData = json.decode(response.body)['results'];
+        jsonData.forEach((i){
+            models.Pictures pictures = models.Pictures(
+              alt_description: i['alt_description'],
+              id: i['id'],
+              link: i['urls']['thumb']
+            );
+            images.add(pictures);
+          });
+        });
+    }
+    else{
+      throw Exception('Failed to load image');
     }
   }
 }
