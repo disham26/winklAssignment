@@ -1,3 +1,6 @@
+import 'dart:math';
+import 'dart:ui' as prefix0;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -5,6 +8,7 @@ import 'models/models.dart' as models;
 import 'helpers/widgets.dart' as widgets;
 import 'dart:convert';
 import 'onClickScreen.dart';
+
 
 class FirstPage extends StatefulWidget {
   _FirstPage createState() => _FirstPage();
@@ -16,7 +20,7 @@ class _FirstPage extends State<FirstPage> {
   String queryTerm = "";
   String hintForTextSearch = "Search";
   FocusNode _searchTextFocus = new FocusNode();
-  List<models.Pictures> images = new List();
+  static List<models.Pictures> images = new List();
   ScrollController _scrollController = new ScrollController();
   TextEditingController _searchController = TextEditingController();
   bool showLoading = false;
@@ -56,7 +60,7 @@ class _FirstPage extends State<FirstPage> {
         SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.black));
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.teal,
+          backgroundColor: Colors.grey,
           title: Container(
             margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 8.0),
             decoration: BoxDecoration(
@@ -82,7 +86,6 @@ class _FirstPage extends State<FirstPage> {
                       )
                     : SizedBox(),
                 Expanded(
-                  flex: 1,
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 5.0),
                     child: TextFormField(
@@ -124,13 +127,21 @@ class _FirstPage extends State<FirstPage> {
         ),
         body: new Column(
           children: <Widget>[
+            SizedBox(),
+            // new Expanded(
+            //     child: new ListView(
+            //   children: <Widget>[
+            //     ShowTiles(),
+            //   ],
+            // )),
             checkImageLength()
                 ? new Expanded(
                     child: new GridView.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            crossAxisSpacing: 3.0,
-                            mainAxisSpacing: 3.0),
+                            crossAxisSpacing: 5.0,
+                            childAspectRatio: 0.6,
+                            mainAxisSpacing: 0.0),
                         scrollDirection: Axis.vertical,
                         itemBuilder: (BuildContext context, index) {
                           return GestureDetector(
@@ -142,23 +153,19 @@ class _FirstPage extends State<FirstPage> {
                                     models.ScreenArguments(images[index]),
                               );
                             },
-                            child:
-                                new widgets.HomeImageCard(images[index].link),
+                            child: new widgets.HomeImageCard(images[index]),
                           );
                         },
                         controller: _scrollController,
                         itemCount: images.length))
                 : widgets.NoImageFound(),
-            showBottom
-                ? showMoreText
-                    ? widgets.MoreImagesLoading()
-                    : widgets.EndOfList()
-                : SizedBox()
           ],
         ));
   }
 
   bool checkImageLength() {
+    print("Inside checkImageLength");
+    print(images.length);
     if (images.length != 0) {
       setState(() {
         showMoreText = true;
@@ -254,4 +261,25 @@ class _FirstPage extends State<FirstPage> {
       });
     }
   }
+
+  int randomNumber() {
+    int result = 1 + Random().nextInt(3);
+    print("CrossAxiscount is : " + result.toString());
+    if (result == null || result < 1) {
+      print("Something has gone wrong");
+      result = 3;
+    }
+    return result;
+  }
 }
+
+// class ShowTiles extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     List<Widget> list = new List<Widget>();
+//     for(var i = 0; i < _FirstPage.images.length; i+3){
+//         list.add(new Text(_FirstPage.images[i].id));
+//     }
+//     return new Column(children: list);
+//   }
+// }

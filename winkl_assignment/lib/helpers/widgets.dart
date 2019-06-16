@@ -34,14 +34,19 @@ class NoImageFound extends StatelessWidget {
 
 class HomeImageCard extends StatelessWidget {
   HomeImageCard(this.link);
-  final String link;
+  final models.Pictures link;
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      height: link.height.ceilToDouble(),
+      width: link.width.ceilToDouble(),
+      
+      child: Card(   
       child: Image.network(
-        link,
+        link.link,
         fit: BoxFit.cover,
       ),
+    )
     );
   }
 }
