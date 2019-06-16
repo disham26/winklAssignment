@@ -8,7 +8,7 @@ import 'models/models.dart' as models;
 import 'helpers/widgets.dart' as widgets;
 import 'dart:convert';
 import 'onClickScreen.dart';
-
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class FirstPage extends StatefulWidget {
   _FirstPage createState() => _FirstPage();
@@ -128,23 +128,17 @@ class _FirstPage extends State<FirstPage> {
         body: new Column(
           children: <Widget>[
             SizedBox(),
-            // new Expanded(
-            //     child: new ListView(
-            //   children: <Widget>[
-            //     ShowTiles(),
-            //   ],
-            // )),
             checkImageLength()
                 ? new Expanded(
-                    child: new GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 5.0,
-                            childAspectRatio: 0.6,
-                            mainAxisSpacing: 0.0),
-                        scrollDirection: Axis.vertical,
-                        itemBuilder: (BuildContext context, index) {
-                          return GestureDetector(
+                    child: new StaggeredGridView.countBuilder(
+              crossAxisCount: 3,
+              mainAxisSpacing: 3.0,
+              crossAxisSpacing: 3.0,
+              itemCount: images.length,
+              controller: _scrollController,
+              itemBuilder: (BuildContext context, int index) => new Container(
+                  color: Colors.white,
+                  child: GestureDetector(
                             onTap: () {
                               Navigator.pushNamed(
                                 context,
@@ -154,10 +148,12 @@ class _FirstPage extends State<FirstPage> {
                               );
                             },
                             child: new widgets.HomeImageCard(images[index]),
-                          );
-                        },
-                        controller: _scrollController,
-                        itemCount: images.length))
+                          )
+                  ),
+              staggeredTileBuilder: (int index) =>
+                  new StaggeredTile.count(index.isEven ? 2 : 1, index.isEven ? 1:2),
+              
+            ))
                 : widgets.NoImageFound(),
           ],
         ));
@@ -214,12 +210,14 @@ class _FirstPage extends State<FirstPage> {
   }
 
   fetchSearch(String text) async {
+    print("fetchSearch called");
     queryTerm = text;
     String query =
         'https://api.unsplash.com/search/photos?client_id=641f7742e10311edcb08d2df0ef6cc2600b2868c0d0872bc7e1df277cba259bd&per_page=30&page=' +
             page.toString() +
             '&query=' +
             text;
+    print(query);
     final response = await http.get(query);
     if (response.statusCode == 200) {
       setState(() {
@@ -263,12 +261,9 @@ class _FirstPage extends State<FirstPage> {
   }
 
   int randomNumber() {
-    int result = 1 + Random().nextInt(3);
+    int result = 1+Random().nextInt(2);
     print("CrossAxiscount is : " + result.toString());
-    if (result == null || result < 1) {
-      print("Something has gone wrong");
-      result = 3;
-    }
+    
     return result;
   }
 }

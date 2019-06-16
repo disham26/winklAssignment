@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: "WinklDemo",
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.teal,
+        primarySwatch: Colors.grey,
       ),
       home: FirstPage(),
     );

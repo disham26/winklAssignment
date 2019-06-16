@@ -45,7 +45,7 @@ class ExtractArgumentsScreen extends StatelessWidget {
                       ),
               ),
               args.picture.alt_description == null
-                  ? Text("NO DESCRIPTION")
+                  ? SizedBox()
                   : Align(
                       alignment: Alignment.topLeft,
                       child: Padding(

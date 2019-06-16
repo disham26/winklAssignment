@@ -38,13 +38,10 @@ class HomeImageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: link.height.ceilToDouble(),
-      width: link.width.ceilToDouble(),
-      
-      child: Card(   
+       child: Card(   
       child: Image.network(
         link.link,
-        fit: BoxFit.cover,
+        fit: BoxFit.fill,
       ),
     )
     );
