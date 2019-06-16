@@ -84,7 +84,8 @@ class ExtractArgumentsScreen extends StatelessWidget {
                                 style: new TextStyle(color: Colors.black))
                           ]))))
                   : SizedBox(),
-            ]))
+            ])),
+            
           ]),
         ));
   }

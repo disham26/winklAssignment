@@ -1,4 +1,4 @@
-# winkl_assignment
+# WinklAssignment
 
 A new Flutter project.
 

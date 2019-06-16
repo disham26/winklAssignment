@@ -1,4 +1,4 @@
-package com.example.winkl_assignment;
+package com.example.WinklAssignment;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
