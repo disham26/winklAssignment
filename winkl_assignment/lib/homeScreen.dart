@@ -95,6 +95,7 @@ class _FirstPage extends State<FirstPage> {
                         setState(() {
                           images.clear();
                           page = 1;
+                          search=true;
                           fetchSearch(text);
                         });
                       },
@@ -151,17 +152,40 @@ class _FirstPage extends State<FirstPage> {
                           )
                   ),
               staggeredTileBuilder: (int index) =>
-                  new StaggeredTile.count(index.isEven ? 2 : 1, index.isEven ? 1:2),
+              new StaggeredTile.count(crossAxisCellCountGet(images[index]), mainAxisCellCountGet(images[index]))  ,
+
               
             ))
                 : widgets.NoImageFound(),
           ],
         ));
   }
+  crossAxisCellCountGet(models.Pictures images){
 
+    if(images.height==null || images.width==null){
+      return 1;
+    }
+    if((images.height-images.width).abs()<=1000){
+        return 2;
+    }
+    if(images.width>images.height){
+      return 2;
+    }
+    return 1;
+  }
+  mainAxisCellCountGet(models.Pictures images){
+    if(images.height==null || images.width==null){
+      return 1;
+    }
+    if((images.height-images.width).abs()<=1000){
+      return 2;
+    }
+    if(images.height>images.width){
+      return 2;
+    }
+    return 1;
+  }
   bool checkImageLength() {
-    print("Inside checkImageLength");
-    print(images.length);
     if (images.length != 0) {
       setState(() {
         showMoreText = true;
@@ -177,9 +201,11 @@ class _FirstPage extends State<FirstPage> {
   }
 
   fetch() async {
+    String query = 'https://api.unsplash.com/photos?client_id=641f7742e10311edcb08d2df0ef6cc2600b2868c0d0872bc7e1df277cba259bd&per_page=30&page=' +
+        page.toString();
     final response = await http.get(
-        'https://api.unsplash.com/photos?client_id=641f7742e10311edcb08d2df0ef6cc2600b2868c0d0872bc7e1df277cba259bd&per_page=30&page=' +
-            page.toString());
+        query);
+
     if (response.statusCode == 200) {
       hasContent = false;
       setState(() {
@@ -210,41 +236,42 @@ class _FirstPage extends State<FirstPage> {
   }
 
   fetchSearch(String text) async {
-    print("fetchSearch called");
     queryTerm = text;
     String query =
         'https://api.unsplash.com/search/photos?client_id=641f7742e10311edcb08d2df0ef6cc2600b2868c0d0872bc7e1df277cba259bd&per_page=30&page=' +
             page.toString() +
             '&query=' +
             text;
-    print(query);
     final response = await http.get(query);
     if (response.statusCode == 200) {
       setState(() {
         showLoading = true;
         page++;
         List jsonData = json.decode(response.body)['results'];
+
         jsonData.forEach((i) {
           models.Pictures pictures = models.Pictures(
               alt_description: i['alt_description'],
               id: i['id'],
-              link: i['urls']['thumb']);
+              link: i['urls']['thumb'],
+          linkFull: i['urls']['raw'],
+              author_bio: i['user']['bio'],
+              author_name: i['user']['name'],
+          height: i['height'],
+          width: i['width']);
           images.add(pictures);
         });
       });
     } else {
       throw Exception('Failed to load image');
     }
-    print("total size of images is:" + images.length.toString());
   }
 
   showMore() {
-    print("showMore called");
     showMoreText = true;
   }
 
   showNoMore() {
-    print("Show no more called");
     showMoreText = false;
   }
 
@@ -260,12 +287,7 @@ class _FirstPage extends State<FirstPage> {
     }
   }
 
-  int randomNumber() {
-    int result = 1+Random().nextInt(2);
-    print("CrossAxiscount is : " + result.toString());
-    
-    return result;
-  }
+
 }
 
 // class ShowTiles extends StatelessWidget {
